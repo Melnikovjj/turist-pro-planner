@@ -1,0 +1,26 @@
+{
+  "name": "turist-pro-planner",
+  "version": "2.0.0",
+  "description": "Telegram Mini App для планирования походов",
+  "main": "js/app.js",
+  "type": "module",
+  "scripts": {
+    "dev": "serve .",
+    "start": "serve ."
+  },
+  "keywords": [
+    "telegram",
+    "mini-app",
+    "hiking",
+    "planner"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "@twa-dev/sdk": "^7.0.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

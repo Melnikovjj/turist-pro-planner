@@ -1,0 +1,21 @@
+@media (max-width: 767px) {
+    .topbar-controls {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .topbar-controls .btn {
+        width: 100% !important;
+        height: 38px !important;
+        margin-top: 8px !important;
+        display: flex !important;
+    }
+
+    .topbar-controls .field {
+        width: 100% !important;
+        display: flex !important;
+    }
+}
