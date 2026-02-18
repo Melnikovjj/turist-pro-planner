@@ -2003,26 +2003,114 @@ async function initServiceWorker() {
   }
 }
 
-// Initialize application
-function initApp() {
-  // Initialize accessibility features
+// Initialize application with Telegram support
+async function initApp() {
+  const loadingScreen = document.getElementById('telegram-loading');
+  const loadingText = loadingScreen?.querySelector('.loading-text');
+  const loadingHint = loadingScreen?.querySelector('.loading-hint');
+
   try {
-    initKeyboardNavigation();
-  } catch (e) {
-    console.error('Accessibility init failed:', e);
-  }
+    // Step 1: Initialize Telegram
+    if (loadingText) loadingText.textContent = 'Подключение к Telegram...';
 
-  // Initial render
-  render();
+    const telegramUser = initTelegramApp();
+    const isTelegram = isTelegramEnvironment();
 
-  // Announce app ready to screen readers
-  setTimeout(() => {
-    try {
-      announce('Приложение Turist Pro Planner загружено и готово к использованию');
-    } catch (e) {
-      console.error('Announce failed:', e);
+    // Step 2: Initialize Supabase
+    if (loadingText) loadingText.textContent = 'Подключение к серверу...';
+    const hasBackend = initSupabase();
+
+    if (!isTelegram) {
+      console.warn('Not running in Telegram. Using local mode.');
+      if (loadingHint) loadingHint.textContent = 'Локальный режим';
     }
-  }, 500);
+
+    // Step 3: Authenticate user
+    if (isTelegram && telegramUser) {
+      if (loadingText) loadingText.textContent = 'Авторизация...';
+
+      try {
+        const user = await authenticateUser(telegramUser);
+        console.log('Authenticated:', user);
+        announce(`Добро пожаловать, ${user.first_name || telegramUser.firstName}!`);
+      } catch (error) {
+        console.error('Auth error:', error);
+        if (typeof showAlert === 'function') showAlert('Ошибка авторизации. Работаем в автономном режиме.');
+      }
+    }
+
+    // Step 4: Load projects from backend or localStorage
+    if (loadingText) loadingText.textContent = 'Загрузка данных...';
+
+    let loadedProjects = [];
+
+    if (hasBackend && isOnlineMode()) {
+      try {
+        loadedProjects = await fetchProjects();
+        console.log(`Loaded ${loadedProjects.length} projects from backend`);
+      } catch (error) {
+        console.error('Load error:', error);
+        const localState = loadState();
+        loadedProjects = localState.projects || [];
+      }
+    } else {
+      const localState = loadState();
+      loadedProjects = localState.projects || [];
+    }
+
+    // Initialize state with loaded projects
+    if (loadedProjects.length > 0) {
+      state.projects = loadedProjects;
+      state.currentProjectId = loadedProjects[0].id;
+    }
+
+    // Initialize accessibility features
+    try {
+      initKeyboardNavigation();
+    } catch (e) {
+      console.error('Accessibility init failed:', e);
+    }
+
+    // Hide loading screen
+    if (loadingText) loadingText.textContent = 'Готово!';
+
+    setTimeout(() => {
+      if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => loadingScreen.remove(), 300);
+      }
+    }, 200);
+
+    // Initial render
+    render();
+
+    // Announce app ready to screen readers
+    setTimeout(() => {
+      try {
+        announce('Приложение Turist Pro Planner загружено и готово к использованию');
+      } catch (e) {
+        console.error('Announce failed:', e);
+      }
+    }, 500);
+
+  } catch (error) {
+    console.error('Init failed:', error);
+
+    if (loadingText) loadingText.textContent = 'Ошибка';
+    if (loadingHint) loadingHint.textContent = error.message;
+
+    setTimeout(() => {
+      if (typeof showAlert === 'function') showAlert(`Ошибка инициализации: ${error.message}`);
+
+      if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => loadingScreen.remove(), 300);
+      }
+
+      // Fallback render
+      render();
+    }, 1000);
+  }
 }
 
 initServiceWorker();
