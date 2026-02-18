@@ -1,9 +1,5 @@
-/**
- * Supabase API Client
- * Handles all database operations for multi-user support
- */
-
-import { createClient } from '@supabase/supabase-js';
+// Turist Pro Planner - Supabase API Client
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // These will be replaced with actual values from Supabase project
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL';
